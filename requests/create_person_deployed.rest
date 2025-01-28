@@ -1,0 +1,7 @@
+POST https://phonebook-backend-cool-flower-6782.fly.dev/api/persons
+Content-Type: application/json
+
+{
+    "name": "Martin Doyen",
+    "number": "0497457167"
+}
