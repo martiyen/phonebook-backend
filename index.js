@@ -5,11 +5,10 @@ const Person = require('./models/person')
 
 const app = express()
 
+app.use(express.static("dist"))
 app.use(express.json()) 
 
 let phonebook = []
-
-app.use(express.static("dist"))
 
 app.use((req, res, next) => {
     if (req.body) {
@@ -54,7 +53,7 @@ app.delete('/api/persons/:id', (request, response) => {
     .then(result => response.status(204).end())
     .catch(error => {
         console.log('error:', error.message)
-        response.status(400).send(`error: ${error.message}`)
+        response.status(400).send({ error: error.message })
     })
 })
 
@@ -74,6 +73,12 @@ app.post('/api/persons', (request, response) => {
         response.json(result)
     })
 })
+
+const unknownEndpoint = (request, response, next) => {
+    response.status(404).send({ error: "unknown endpoint" })
+}
+
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT
 app.listen(PORT)
