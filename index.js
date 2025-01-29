@@ -1,31 +1,13 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
+const Person = require('./models/person')
+
 const app = express()
 
 app.use(express.json()) 
 
-let phonebook = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+let phonebook = []
 
 app.use(express.static("dist"))
 
@@ -49,57 +31,47 @@ app.use(morgan('tiny', {
 }))
 
 app.get("/api/persons", (request, response) => {
-    response.json(phonebook)
+    Person.find({}).then(result => {
+        response.json(result)
+    })
 })
 
 app.get("/api/info", (request, response) => {
     const date = Date()
-    response.send(`<p>Phonebook has info for ${phonebook.length} people</p>${date}`)
+    Person.find({}).then(result => {
+        response.send(`<p>Phonebook has info for ${result.length} people</p>${date}`)
+    })
 })
 
 app.get("/api/persons/:id", (request, response) => {
-    const id = request.params.id
-    const person = phonebook.find(p => p.id === id)
-
-    if (person) {
-        response.json(person)
-    }
-    response.status(404).end()
+    Person.findById(request.params.id).then(result => {
+        result ? response.json(result) : response.status(404).end()
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    phonebook = phonebook.filter(p => p.id !== id)
-    response.status(204).end()
+    request.params.id !== "undefined"? 
+    Person.deleteOne({ _id: request.params.id }).then(result => response.status(204).end()):
+    response.status(404).end()
 })
 
-const generateId = () => {
-    const maxId = phonebook.length > 0
-    ? Math.max(...phonebook.map(p => Number(p.id)))
-    : 0
-
-    return String(maxId + 1)
-}
-
 app.post('/api/persons', (request, response) => {
-    const person = request.body
-    const existingPerson = phonebook.find(p => p.name === person.name)
+    const body = request.body
 
-    if (!person.name || !person.number) {
+    if (!body.name || !body.number) {
         return response.status(400).json({ error: 'name and number must be defined'}).end()
     }
 
-    if (existingPerson) {
-        return response.status(400).json({ error: 'name must be unique'}).end()
-    }
-
-    person.id = generateId()
-
-    phonebook = phonebook.concat(person)
-
-    response.json(person)
+    const newPerson = new Person({
+        name: body.name,
+        number: body.number,
+    })
+    
+    newPerson.save().then(result => {
+        response.json(result)
+    })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT)
 console.log(`Application started on port ${PORT}`)
