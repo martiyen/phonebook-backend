@@ -12,4 +12,12 @@ const noteSchema = new mongoose.Schema({
   number: String,
 })
 
+noteSchema.set('toJSON', {
+  transform: (doc, res) => {
+    res.id = res._id.toString()
+    delete res._id
+    delete res.__v
+  }
+})
+
 module.exports = mongoose.model('Person', noteSchema) 
