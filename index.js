@@ -35,7 +35,7 @@ app.get("/api/persons", (request, response) => {
     })
 })
 
-app.get("/api/info", (request, response) => {
+app.get("/info", (request, response) => {
     const date = Date()
     Person.find({}).then(result => {
         response.send(`<p>Phonebook has info for ${result.length} people</p>${date}`)
