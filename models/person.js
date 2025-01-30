@@ -8,8 +8,24 @@ mongoose.connect(url)
 console.log('connected to MongoDB')
 
 const noteSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    minLength: 3,
+    required: true
+  },
+  number: {
+    type: String,
+    validate: {
+      validator: function(v) {
+        const re = /^0\d{3}\/\d{6}$/
+        return re.test(v)
+      },
+      message: props => `${props.value} is a not a valid phone number`
+
+    },
+    minLength: [8, '{VALUE} is shorter than 8 characters'],
+    required: true
+  }
 })
 
 noteSchema.set('toJSON', {
